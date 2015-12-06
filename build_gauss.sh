@@ -8,5 +8,5 @@ cmake -DUSE_GAUSS=ON -DENABLE_TESTING=ON ..
 make -j4
 make test
 cd ../tests/simp-checks/
-./checks.py -l ../../build/cryptominisat4 testfiles/*
+./checks.py ../../build/cryptominisat4 testfiles/*
 cd ../../build/

@@ -8,5 +8,5 @@ cmake -DENABLE_TESTING=ON ..
 make -j4 VERBOSE=1
 ctest -V
 cd ../tests/simp-checks/
-./checks.py -l ../../build/cryptominisat4 testfiles/*
+./checks.py ../../build/cryptominisat4 testfiles/*
 cd ../../build/
