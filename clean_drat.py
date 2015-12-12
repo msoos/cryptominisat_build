@@ -3,18 +3,11 @@
 
 from __future__ import print_function
 import sys
+import unittest
 
-if len(sys.argv) != 2:
-    print("Error: must give file to parse")
-    exit(-1)
 
-fname = sys.argv[1]
-
-f = open("my_test.drup")
-for line in f:
-    line = line.strip()
+def fix_line(line):
     toprint = ""
-    zeros = 0
     for e in line.split():
         e = e.strip()
         if e == "d":
@@ -23,12 +16,24 @@ for line in f:
 
         # print("e is %s" % e)
         if int(e) == 0:
-            zeros += 1
             toprint += "0"
             break
 
         toprint += "%d " % int(e)
 
-    print(toprint)
+    return toprint
 
-f.close()
+
+if __name__ == '__main__':
+    if len(sys.argv) != 2:
+        print("Error: must give file to parse")
+        exit(-1)
+
+    fname = sys.argv[1]
+
+    f = open("my_test.drup")
+
+    for line in f:
+        print(fix_line(line))
+
+    f.close()
