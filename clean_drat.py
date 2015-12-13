@@ -31,7 +31,7 @@ if __name__ == '__main__':
 
     fname = sys.argv[1]
 
-    f = open("my_test.drup")
+    f = open("my_test.drat")
 
     for line in f:
         print(fix_line(line))
