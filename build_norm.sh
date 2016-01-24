@@ -2,8 +2,7 @@
 
 set -e
 
-rm -rf cm* CM* lib* cryptomini* Testing* tests* pycryptosat include
-rm -rf tests
+rm -rf cm* CM* lib* cryptomini* Testing* tests* pycryptosat include tests
 cmake -DENABLE_PYTHON_INTERFACE=ON -DENABLE_TESTING=ON ..
 make -j4
 make test
