@@ -69,7 +69,6 @@ class Query:
             VALUES (?, ?)""", id_b)
 
     def find_goods(self, name):
-        print("---- gooods ----")
         q = """
         SELECT clauseStats.{0}, count(clauseStats.{0})
         FROM clauseStats, goodClauses
@@ -79,17 +78,17 @@ class Query:
         group by clauseStats.{0}
         """.format(name, self.runID)
 
-        total=0
-        num= 0
-        for row in self.c.execute(q):
-            total += int(row[0])*int(row[1])
-            num += int(row[1])
-            print(row[0], row[1])
+        with open("hist-%s-good.dat" % name, "w") as f:
+            total=0
+            num= 0
+            for row in self.c.execute(q):
+                total += int(row[0])*int(row[1])
+                num += int(row[1])
+                f.write("%s\t%s\n" % (row[0], row[1]))
 
-        print("avg: %f" % (float(total)/float(num)))
+        print("good avg: %-6.2f" % (float(total)/float(num)))
 
     def find_bads(self, name):
-        print("---- bads ----")
         q = """
         SELECT clauseStats.{0}, count(clauseStats.{0})
         FROM clauseStats left join goodClauses
@@ -101,14 +100,15 @@ class Query:
         group by clauseStats.{0}
         """.format(name, self.runID)
 
-        total=0
-        num= 0
-        for row in self.c.execute(q):
-            total += int(row[0])*int(row[1])
-            num += int(row[1])
-            print(row[0], row[1])
+        with open("hist-%s-bad.dat" % name, "w") as f:
+            total=0
+            num= 0
+            for row in self.c.execute(q):
+                total += int(row[0])*int(row[1])
+                num += int(row[1])
+                f.write("%s\t%s\n" % (row[0], row[1]))
 
-        print("avg: %f" % (float(total)/float(num)))
+        print("bad  avg: %-6.2f" % (float(total)/float(num)))
 
 
 if __name__ == "__main__":
@@ -131,6 +131,9 @@ if __name__ == "__main__":
     parser.add_option("--verbose", "-v", action="store_true", default=False,
                       dest="verbose", help="Print more output")
 
+    parser.add_option("--lines", "-l", default=15, type=int,
+                      dest="max_lines", help="Only print top N lines")
+
 
     (options, args) = parser.parse_args()
 
@@ -147,7 +150,10 @@ if __name__ == "__main__":
 
     with Query() as q:
         q.add_goods(useful_lemmas)
-        for stat in ["glue", "size", "num_overlap_literals"]:
+        for stat in ["glue", "size", "num_overlap_literals",
+                     "avg_vsids_score", "antecedents_avg_glue_long_reds",
+                     "avg_vsids_of_resolving_literals",
+                     "conflicts_this_restart"]:
             print("--->>> %s <<--------" % stat)
             q.find_goods(stat)
             q.find_bads(stat)
