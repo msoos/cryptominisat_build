@@ -151,20 +151,11 @@ if __name__ == "__main__":
     usage = "usage: %prog [options] lemma_file sqlitedb"
     parser = optparse.OptionParser(usage=usage)
 
-    parser.add_option("--maxtime", metavar="CUTOFF",
-                      dest="maxtime", default=20, type=int,
-                      help="Max time for an operation")
-
-    parser.add_option("--maxmemory", metavar="CUTOFF",
-                      dest="maxmemory", default=500, type=int,
-                      help="Max memory for a subsystem")
-
-    parser.add_option("--minmemory", metavar="MINMEM",
-                      dest="minmemory", default=100, type=int,
-                      help="Minimum memory to be checked for RSS vs counted check")
-
     parser.add_option("--verbose", "-v", action="store_true", default=False,
                       dest="verbose", help="Print more output")
+
+    parser.add_option("--avg", action="store_true", default=False,
+                      dest="avg", help="Print more output")
 
     parser.add_option("--dist", action="store_true", default=False,
                       dest="distrib", help="Dump distribution to files")
@@ -184,13 +175,14 @@ if __name__ == "__main__":
 
     with Query() as q:
         q.add_goods(useful_lemmas)
-        for stat in ["glue", "size", "num_overlap_literals",
-                     "avg_vsids_score", "antecedents_avg_glue_long_reds",
-                     "avg_vsids_of_resolving_literals",
-                     "conflicts_this_restart"]:
-            print("--->>> %s <<--------" % stat)
-            q.find_goods(stat)
-            q.find_bads(stat)
+        if options.avg:
+            for stat in ["glue", "size", "num_overlap_literals",
+                         "avg_vsids_score", "antecedents_avg_glue_long_reds",
+                         "avg_vsids_of_resolving_literals",
+                         "conflicts_this_restart"]:
+                print("--->>> %s <<--------" % stat)
+                q.find_goods(stat)
+                q.find_bads(stat)
 
         rows = q.get_all()
         print(rows[:20])
