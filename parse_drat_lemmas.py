@@ -70,8 +70,14 @@ class Query:
             INSERT INTO goodClauses (`runID`, `clauseID`)
             VALUES (?, ?)""", id_b)
 
+    def get_names(self):
+        names = None
+        for row in self.c.execute("select * from clauseStats limit 1"):
+            names = list(map(lambda x: x[0], self.c.description))
+        return names
+
     def get_all(self):
-        rows = []
+        goods = []
 
         q = """
         SELECT clauseStats.*
@@ -81,10 +87,11 @@ class Query:
         and clauseStats.runID = {0}
         """.format(self.runID)
         for row in self.c.execute(q):
-            r = list(row[5:])
+            r = list(row)
             r.append(1)
-            rows.append(r)
+            goods.append(r)
 
+        bads = []
         q = """
         SELECT clauseStats.*
         FROM clauseStats left join goodClauses
@@ -95,55 +102,11 @@ class Query:
         and clauseStats.runID = {0}
         """.format(self.runID)
         for row in self.c.execute(q):
-            r = list(row[5:])
+            r = list(row)
             r.append(0)
-            rows.append(r)
+            bads.append(r)
 
-        return rows
-
-    def find_goods(self, name):
-        q = """
-        SELECT clauseStats.{0}, count(clauseStats.{0})
-        FROM clauseStats, goodClauses
-        WHERE clauseStats.clauseID = goodClauses.clauseID
-        and clauseStats.runID = goodClauses.runID
-        and clauseStats.runID = {1}
-        group by clauseStats.{0}
-        """.format(name, self.runID)
-
-        with open("hist-%s-good.dat" % name, "w") as f:
-            total = 0
-            num = 0
-            for row in self.c.execute(q):
-                total += int(row[0])*int(row[1])
-                num += int(row[1])
-                if options.distrib:
-                    f.write("%s\t%s\n" % (row[0], row[1]))
-
-        print("good avg: %-6.2f" % (float(total)/float(num)))
-
-    def find_bads(self, name):
-        q = """
-        SELECT clauseStats.{0}, count(clauseStats.{0})
-        FROM clauseStats left join goodClauses
-        on clauseStats.clauseID = goodClauses.clauseID
-        and clauseStats.runID = goodClauses.runID
-        where goodClauses.clauseID is NULL
-        and goodClauses.runID is NULL
-        and clauseStats.runID = {1}
-        group by clauseStats.{0}
-        """.format(name, self.runID)
-
-        with open("hist-%s-bad.dat" % name, "w") as f:
-            total = 0
-            num = 0
-            for row in self.c.execute(q):
-                total += int(row[0])*int(row[1])
-                num += int(row[1])
-                if options.distrib:
-                    f.write("%s\t%s\n" % (row[0], row[1]))
-
-        print("bad  avg: %-6.2f" % (float(total)/float(num)))
+        return goods, bads
 
 
 if __name__ == "__main__":
@@ -153,12 +116,6 @@ if __name__ == "__main__":
 
     parser.add_option("--verbose", "-v", action="store_true", default=False,
                       dest="verbose", help="Print more output")
-
-    parser.add_option("--avg", action="store_true", default=False,
-                      dest="avg", help="Print more output")
-
-    parser.add_option("--dist", action="store_true", default=False,
-                      dest="distrib", help="Dump distribution to files")
 
     (options, args) = parser.parse_args()
 
@@ -171,18 +128,19 @@ if __name__ == "__main__":
     print("Using sqlite3db file %s" % dbfname)
     print("Using lemma file %s" % lemmafname)
 
-    useful_lemmas = parse_lemmas(lemmafname)
+    useful_lemma_ids = parse_lemmas(lemmafname)
 
     with Query() as q:
-        q.add_goods(useful_lemmas)
-        if options.avg:
-            for stat in ["glue", "size", "num_overlap_literals",
-                         "avg_vsids_score", "antecedents_avg_glue_long_reds",
-                         "avg_vsids_of_resolving_literals",
-                         "conflicts_this_restart"]:
-                print("--->>> %s <<--------" % stat)
-                q.find_goods(stat)
-                q.find_bads(stat)
+        names = q.get_names()
+        names.append("class")
+        print("column names: ", names)
 
-        rows = q.get_all()
-        print(rows[:20])
+        q.add_goods(useful_lemma_ids)
+        goods, bads = q.get_all()
+        print("--- good examples:")
+        for row in goods[:20]:
+            print(row)
+
+        print("--- bad examples:")
+        for row in bads[:20]:
+            print(row)
