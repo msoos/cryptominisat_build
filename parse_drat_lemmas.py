@@ -6,6 +6,7 @@ import sqlite3
 import optparse
 import operator
 
+
 def parse_lemmas(lemmafname):
     ret = []
     with open(lemmafname, "r") as f:
@@ -32,6 +33,7 @@ def parse_lemmas(lemmafname):
     print("Parsed %d number of good lemmas" % len(ret))
     ret = sorted(ret)
     return ret
+
 
 class Query:
     def __init__(self):
@@ -79,12 +81,13 @@ class Query:
         """.format(name, self.runID)
 
         with open("hist-%s-good.dat" % name, "w") as f:
-            total=0
-            num= 0
+            total = 0
+            num = 0
             for row in self.c.execute(q):
                 total += int(row[0])*int(row[1])
                 num += int(row[1])
-                f.write("%s\t%s\n" % (row[0], row[1]))
+                if options.distrib:
+                    f.write("%s\t%s\n" % (row[0], row[1]))
 
         print("good avg: %-6.2f" % (float(total)/float(num)))
 
@@ -101,12 +104,13 @@ class Query:
         """.format(name, self.runID)
 
         with open("hist-%s-bad.dat" % name, "w") as f:
-            total=0
-            num= 0
+            total = 0
+            num = 0
             for row in self.c.execute(q):
                 total += int(row[0])*int(row[1])
                 num += int(row[1])
-                f.write("%s\t%s\n" % (row[0], row[1]))
+                if options.distrib:
+                    f.write("%s\t%s\n" % (row[0], row[1]))
 
         print("bad  avg: %-6.2f" % (float(total)/float(num)))
 
@@ -131,8 +135,8 @@ if __name__ == "__main__":
     parser.add_option("--verbose", "-v", action="store_true", default=False,
                       dest="verbose", help="Print more output")
 
-    parser.add_option("--lines", "-l", default=15, type=int,
-                      dest="max_lines", help="Only print top N lines")
+    parser.add_option("--dist", action="store_true", default=False,
+                      dest="distrib", help="Dump distribution to files")
 
 
     (options, args) = parser.parse_args()
