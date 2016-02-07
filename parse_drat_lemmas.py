@@ -70,6 +70,37 @@ class Query:
             INSERT INTO goodClauses (`runID`, `clauseID`)
             VALUES (?, ?)""", id_b)
 
+    def get_all(self):
+        rows = []
+
+        q = """
+        SELECT clauseStats.*
+        FROM clauseStats, goodClauses
+        WHERE clauseStats.clauseID = goodClauses.clauseID
+        and clauseStats.runID = goodClauses.runID
+        and clauseStats.runID = {0}
+        """.format(self.runID)
+        for row in self.c.execute(q):
+            r = list(row[5:])
+            r.append(1)
+            rows.append(r)
+
+        q = """
+        SELECT clauseStats.*
+        FROM clauseStats left join goodClauses
+        on clauseStats.clauseID = goodClauses.clauseID
+        and clauseStats.runID = goodClauses.runID
+        where goodClauses.clauseID is NULL
+        and goodClauses.runID is NULL
+        and clauseStats.runID = {0}
+        """.format(self.runID)
+        for row in self.c.execute(q):
+            r = list(row[5:])
+            r.append(0)
+            rows.append(r)
+
+        return rows
+
     def find_goods(self, name):
         q = """
         SELECT clauseStats.{0}, count(clauseStats.{0})
@@ -138,7 +169,6 @@ if __name__ == "__main__":
     parser.add_option("--dist", action="store_true", default=False,
                       dest="distrib", help="Dump distribution to files")
 
-
     (options, args) = parser.parse_args()
 
     if len(args) != 2:
@@ -162,6 +192,5 @@ if __name__ == "__main__":
             q.find_goods(stat)
             q.find_bads(stat)
 
-
-
-
+        rows = q.get_all()
+        print(rows[:20])
