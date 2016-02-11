@@ -70,11 +70,51 @@ class Query:
             INSERT INTO goodClauses (`runID`, `clauseID`)
             VALUES (?, ?)""", id_b)
 
+    def get_max_clauseID(self):
+        q = """
+        SELECT max(clauseID)
+        FROM clauseStats
+        WHERE runID = %d
+        """ % self.runID
+
+        max_clID = None
+        for row in self.c.execute(q):
+            max_clID = int(row[0])
+
+        return max_clID
+
     def get_names(self):
         names = None
         for row in self.c.execute("select * from clauseStats limit 1"):
             names = list(map(lambda x: x[0], self.c.description))
         return names
+
+    def get_restarts(self):
+        q = """
+        select
+            restart.restarts,
+            numgood.cnt,
+            restart.clauseIDendExclusive-restart.clauseIDstartInclusive as total
+        from
+            restart,
+            (SELECT clauseStats.restarts as restarts, count(clauseStats.clauseID) as cnt
+            FROM ClauseStats, goodClauses
+            WHERE clauseStats.clauseID = goodClauses.clauseID
+            and clauseStats.runID = goodClauses.runID
+            and clauseStats.runID = {0}
+            group by clauseStats.restarts) as numgood
+        where
+            restart.runID = {0}
+            and restart.restarts = numgood.restarts
+        """.format(self.runID)
+
+        for row in self.c.execute(q):
+            r = list(row)
+            rest = r[0]
+            good = r[1]
+            total = r[2]
+            print("rest num %-6d  conflicts %-6d good %-3.2f%%" %
+                  (rest, total, float(good)/total*100.0))
 
     def get_all(self):
         goods = []
@@ -136,11 +176,13 @@ if __name__ == "__main__":
         print("column names: ", names)
 
         q.add_goods(useful_lemma_ids)
+        q.get_restarts()
+
         goods, bads = q.get_all()
-        print("--- good examples:")
-        for row in goods[:20]:
+        print("--- good examples: ", len(goods))
+        for row in goods[:5]:
             print(row)
 
-        print("--- bad examples:")
-        for row in bads[:20]:
+        print("--- bad examples:", len(bads))
+        for row in bads[:5]:
             print(row)
