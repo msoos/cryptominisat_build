@@ -5,6 +5,18 @@ from __future__ import print_function
 import sqlite3
 import optparse
 import operator
+import numpy
+import time
+from sklearn.preprocessing import StandardScaler
+from sklearn.cross_validation import train_test_split
+import functools
+
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.tree import DecisionTreeClassifier
+
+
+def mypow(to, base):
+    return base**to
 
 
 def parse_lemmas(lemmafname):
@@ -83,7 +95,7 @@ class Query:
 
         return max_clID
 
-    def get_names(self):
+    def get_clausestats_names(self):
         names = None
         for row in self.c.execute("select * from clauseStats limit 1"):
             names = list(map(lambda x: x[0], self.c.description))
@@ -117,7 +129,7 @@ class Query:
                   (rest, total, float(good)/total*100.0))
 
     def get_all(self):
-        goods = []
+        ret = []
 
         q = """
         SELECT clauseStats.*
@@ -125,11 +137,12 @@ class Query:
         WHERE clauseStats.clauseID = goodClauses.clauseID
         and clauseStats.runID = goodClauses.runID
         and clauseStats.runID = {0}
+        order by RANDOM()
         """.format(self.runID)
-        for row in self.c.execute(q):
-            r = list(row)
-            r.append(1)
-            goods.append(r)
+        for row, _ in zip(self.c.execute(q), xrange(options.limit)):
+            #first 5 are not useful, such as restarts and clauseID
+            r = list(row[5:])
+            ret.append([r, 1])
 
         bads = []
         q = """
@@ -140,14 +153,23 @@ class Query:
         where goodClauses.clauseID is NULL
         and goodClauses.runID is NULL
         and clauseStats.runID = {0}
+        order by RANDOM()
         """.format(self.runID)
-        for row in self.c.execute(q):
-            r = list(row)
-            r.append(0)
-            bads.append(r)
+        for row, _ in zip(self.c.execute(q), xrange(options.limit)):
+            #first 5 are not useful, such as restarts and clauseID
+            r = list(row[5:])
+            ret.append([r, 0])
 
-        return goods, bads
+        numpy.random.shuffle(ret)
+        X = [x[0] for x in ret]
+        y = [x[1] for x in ret]
+        return X, y
 
+
+def print_clausestats_column_names():
+    names = q.get_clausestats_names()
+    names.append("class")
+    print("column names: ", names)
 
 if __name__ == "__main__":
 
@@ -156,6 +178,9 @@ if __name__ == "__main__":
 
     parser.add_option("--verbose", "-v", action="store_true", default=False,
                       dest="verbose", help="Print more output")
+
+    parser.add_option("--limit", "-l", default=10**9, type=int,
+                      dest="limit", help="Max number of good/bad clauses")
 
     (options, args) = parser.parse_args()
 
@@ -171,18 +196,42 @@ if __name__ == "__main__":
     useful_lemma_ids = parse_lemmas(lemmafname)
 
     with Query() as q:
-        names = q.get_names()
-        names.append("class")
-        print("column names: ", names)
 
         q.add_goods(useful_lemma_ids)
-        q.get_restarts()
 
-        goods, bads = q.get_all()
-        print("--- good examples: ", len(goods))
-        for row in goods[:5]:
-            print(row)
+        print_clausestats_column_names()
+        #q.get_restarts()
 
-        print("--- bad examples:", len(bads))
-        for row in bads[:5]:
-            print(row)
+        X, y = q.get_all()
+        print(type(X))
+        print(type(y))
+        assert len(X) == len(y)
+
+        print("--- examples:", len(X))
+        print(X[0])
+        print(y[0])
+
+        #adding squares to it
+        #X = [a+map(functools.partial(mypow, 2), b) for a, b in zip(X, X)]
+        print(X[0])
+        print(len(X[0]))
+        X = StandardScaler().fit_transform(X)
+
+        print("Training....")
+        t = time.time()
+        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.5)
+        print("type(X_train):", type(X_train))
+        print("type(y_train):", type(y_train))
+
+        #clf = KNeighborsClassifier(5)
+        clf = DecisionTreeClassifier(max_depth=6)
+        clf.fit(X_train, y_train)
+        print("Training finished. T: %-3.2f" % (time.time()-t))
+
+        print("Calculating score....")
+        t = time.time()
+        score = clf.score(X_test[2000:], y_test[2000:])
+        print("score: %s T: %-3.2f" % (score, (time.time()-t)))
+        #print(clf.tree_)
+        clf.get_params()
+
