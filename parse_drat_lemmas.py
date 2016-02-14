@@ -7,11 +7,12 @@ import optparse
 import operator
 import numpy
 import time
+import functools
+import glob
+import os
+
 from sklearn.preprocessing import StandardScaler
 from sklearn.cross_validation import train_test_split
-import functools
-
-from sklearn.neighbors import KNeighborsClassifier
 from sklearn.tree import DecisionTreeClassifier
 
 
@@ -48,7 +49,7 @@ def parse_lemmas(lemmafname):
 
 
 class Query:
-    def __init__(self):
+    def __init__(self, dbfname):
         self.conn = sqlite3.connect(dbfname)
         self.c = self.conn.cursor()
         self.runID = self.find_runID()
@@ -166,14 +167,77 @@ class Query:
         return X, y
 
 
-def print_clausestats_column_names():
+def print_clausestats_column_names(q):
     names = q.get_clausestats_names()
     names.append("class")
     print("column names: ", names)
 
+
+def get_one_file(lemmafname, dbfname):
+    print("Using sqlite3db file %s" % dbfname)
+    print("Using lemma file %s" % lemmafname)
+
+    with Query(dbfname) as q:
+        useful_lemma_ids = parse_lemmas(lemmafname)
+
+        q.add_goods(useful_lemma_ids)
+
+        print_clausestats_column_names(q)
+        #q.get_restarts()
+
+        X, y = q.get_all()
+        assert len(X) == len(y)
+
+        return X, y
+
+
+def predict(X, y):
+    #adding squares to it
+    #X = [a+map(functools.partial(mypow, 2), b) for a, b in zip(X, X)]
+    #print(X[0])
+    print("number of features:", len(X[0]))
+    print("total samples:", len(X))
+    X = StandardScaler().fit_transform(X)
+
+    print("Training....")
+    t = time.time()
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.5)
+    print("type(X_train):", type(X_train))
+    print("type(y_train):", type(y_train))
+
+    #clf = KNeighborsClassifier(5)
+    clf = DecisionTreeClassifier(max_depth=6)
+    clf.fit(X_train, y_train)
+    print("Training finished. T: %-3.2f" % (time.time()-t))
+
+    print("Calculating score....")
+    t = time.time()
+    score = clf.score(X_test[2000:], y_test[2000:])
+    print("score: %s T: %-3.2f" % (score, (time.time()-t)))
+    #print(clf.tree_)
+    params = clf.get_params()
+    print(params)
+
+
+def get_lemma_and_db(d):
+    assert os.path.isdir(d)
+    for fname in glob.glob(d + "/*"):
+            fname = fname.strip()
+            dbfname = None
+            #print(fname)
+            if fname.endswith(".sqlite"):
+                dbfname = fname
+                break
+
+    assert dbfname is not None
+    lemmafname = d + "/lemmas"
+
+    return lemmafname, dbfname
+
+
 if __name__ == "__main__":
 
-    usage = "usage: %prog [options] lemma_file sqlitedb"
+    usage = "usage: %prog [options] dir1 [dir2...]"
     parser = optparse.OptionParser(usage=usage)
 
     parser.add_option("--verbose", "-v", action="store_true", default=False,
@@ -184,54 +248,23 @@ if __name__ == "__main__":
 
     (options, args) = parser.parse_args()
 
-    if len(args) != 2:
-        print("ERROR: You must give a lemma file and an SQL file")
+    if len(args) < 1:
+        print("ERROR: You must give at least one directory")
         exit(-1)
 
-    lemmafname = args[0]
-    dbfname = args[1]
-    print("Using sqlite3db file %s" % dbfname)
-    print("Using lemma file %s" % lemmafname)
+    X = []
+    y = []
+    for d in args:
+        lemmafname, dbfname = get_lemma_and_db(d)
+        a, b = get_one_file(lemmafname, dbfname)
+        X.extend(a)
+        y.extend(b)
+        predict(a, b)
 
-    useful_lemma_ids = parse_lemmas(lemmafname)
+    print("FINAL!!")
+    predict(X, y)
 
-    with Query() as q:
 
-        q.add_goods(useful_lemma_ids)
 
-        print_clausestats_column_names()
-        #q.get_restarts()
 
-        X, y = q.get_all()
-        print(type(X))
-        print(type(y))
-        assert len(X) == len(y)
-
-        print("--- examples:", len(X))
-        print(X[0])
-        print(y[0])
-
-        #adding squares to it
-        #X = [a+map(functools.partial(mypow, 2), b) for a, b in zip(X, X)]
-        print(X[0])
-        print(len(X[0]))
-        X = StandardScaler().fit_transform(X)
-
-        print("Training....")
-        t = time.time()
-        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.5)
-        print("type(X_train):", type(X_train))
-        print("type(y_train):", type(y_train))
-
-        #clf = KNeighborsClassifier(5)
-        clf = DecisionTreeClassifier(max_depth=6)
-        clf.fit(X_train, y_train)
-        print("Training finished. T: %-3.2f" % (time.time()-t))
-
-        print("Calculating score....")
-        t = time.time()
-        score = clf.score(X_test[2000:], y_test[2000:])
-        print("score: %s T: %-3.2f" % (score, (time.time()-t)))
-        #print(clf.tree_)
-        clf.get_params()
 
