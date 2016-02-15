@@ -13,7 +13,10 @@ import os
 
 from sklearn.preprocessing import StandardScaler
 from sklearn.cross_validation import train_test_split
-from sklearn.tree import DecisionTreeClassifier
+import sklearn.tree
+from sklearn.externals.six import StringIO
+import pydot
+from IPython.display import Image
 
 
 def mypow(to, base):
@@ -142,7 +145,7 @@ class Query:
         """.format(self.runID)
         for row, _ in zip(self.c.execute(q), xrange(options.limit)):
             #first 5 are not useful, such as restarts and clauseID
-            r = list(row[5:])
+            r = self.transform_row(row)
             ret.append([r, 1])
 
         bads = []
@@ -158,7 +161,7 @@ class Query:
         """.format(self.runID)
         for row, _ in zip(self.c.execute(q), xrange(options.limit)):
             #first 5 are not useful, such as restarts and clauseID
-            r = list(row[5:])
+            r = self.transform_row(row)
             ret.append([r, 0])
 
         numpy.random.shuffle(ret)
@@ -166,11 +169,23 @@ class Query:
         y = [x[1] for x in ret]
         return X, y
 
+    def transform_row(self, row):
+        row = list(row[5:])
+        row[1] = row[1]/row[4]
+        row[4] = 0
+        row[5] = 0
+
+        return row
+
 
 def print_clausestats_column_names(q):
     names = q.get_clausestats_names()
-    names.append("class")
-    print("column names: ", names)
+    names = names[5:]
+    print("column names: ")
+    for name, num in zip(names, xrange(1000)):
+        print("%-3d: %s" % (num, name))
+
+    return names
 
 
 def get_one_file(lemmafname, dbfname):
@@ -182,41 +197,56 @@ def get_one_file(lemmafname, dbfname):
 
         q.add_goods(useful_lemma_ids)
 
-        print_clausestats_column_names(q)
+        col_names = print_clausestats_column_names(q)
         #q.get_restarts()
 
         X, y = q.get_all()
         assert len(X) == len(y)
 
-        return X, y
+        return X, y, col_names
 
 
-def predict(X, y):
-    #adding squares to it
-    #X = [a+map(functools.partial(mypow, 2), b) for a, b in zip(X, X)]
-    #print(X[0])
-    print("number of features:", len(X[0]))
-    print("total samples:", len(X))
-    X = StandardScaler().fit_transform(X)
+class Classify:
+    def predict(self, X, y):
+        #adding squares to it
+        #X = [a+map(functools.partial(mypow, 2), b) for a, b in zip(X, X)]
+        #print(X[0])
+        print("number of features:", len(X[0]))
+        print("total samples:", len(X))
+        X = StandardScaler().fit_transform(X)
 
-    print("Training....")
-    t = time.time()
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.5)
-    print("type(X_train):", type(X_train))
-    print("type(y_train):", type(y_train))
+        print("Training....")
+        t = time.time()
+        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2)
+        print("type(X_train):", type(X_train))
+        print("type(y_train):", type(y_train))
 
-    #clf = KNeighborsClassifier(5)
-    clf = DecisionTreeClassifier(max_depth=6)
-    clf.fit(X_train, y_train)
-    print("Training finished. T: %-3.2f" % (time.time()-t))
+        #clf = KNeighborsClassifier(5)
+        self.clf = sklearn.tree.DecisionTreeClassifier(
+            max_depth=options.max_depth)
+        self.clf.fit(X_train, y_train)
+        print("Training finished. T: %-3.2f" % (time.time()-t))
 
-    print("Calculating score....")
-    t = time.time()
-    score = clf.score(X_test[2000:], y_test[2000:])
-    print("score: %s T: %-3.2f" % (score, (time.time()-t)))
-    #print(clf.tree_)
-    params = clf.get_params()
-    print(params)
+        print("Calculating score....")
+        t = time.time()
+        score = self.clf.score(X_test, y_test)
+        print("score: %s T: %-3.2f" % (score, (time.time()-t)))
+        #print(clf.tree_)
+        params = self.clf.get_params()
+        print(params)
+
+    def output_to_pdf(self, col_names):
+        dot_data = StringIO()
+        sklearn.tree.export_graphviz(self.clf, out_file=dot_data,
+                                     feature_names=col_names,
+                                     class_names=["BAD", "GOOD"],
+                                     filled=True, rounded=True,
+                                     special_characters=True,
+                                     proportion=True
+                                     )
+        graph = pydot.graph_from_dot_data(dot_data.getvalue())
+        #Image(graph.create_png())
+        graph.write_pdf("better.pdf")
 
 
 def get_lemma_and_db(d):
@@ -246,6 +276,9 @@ if __name__ == "__main__":
     parser.add_option("--limit", "-l", default=10**9, type=int,
                       dest="limit", help="Max number of good/bad clauses")
 
+    parser.add_option("--depth", default=6, type=int,
+                      dest="max_depth", help="Max depth")
+
     (options, args) = parser.parse_args()
 
     if len(args) < 1:
@@ -254,15 +287,20 @@ if __name__ == "__main__":
 
     X = []
     y = []
+    col_names = None
     for d in args:
         lemmafname, dbfname = get_lemma_and_db(d)
-        a, b = get_one_file(lemmafname, dbfname)
+        a, b, col_names = get_one_file(lemmafname, dbfname)
         X.extend(a)
         y.extend(b)
-        predict(a, b)
+        clf = Classify()
+        clf.predict(a, b)
 
     print("FINAL!!")
-    predict(X, y)
+    clf = Classify()
+    clf.predict(X, y)
+    clf.output_to_pdf(col_names)
+
 
 
 
