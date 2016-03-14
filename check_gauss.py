@@ -52,7 +52,14 @@ def get_clauses_to_verify(outfname):
     return clauses
 
 if __name__ == "__main__":
-    usage = "usage: %prog [options] dir1 [dir2...]"
+    usage = """usage: %prog [options] CNF gauss_output
+Where gauss_output is the outptu of gauss with lines such as:
+(0) prop clause: -43 84 27 143 -12 151 , rhs:1
+(0) confl clause: -133 102 146 -149 8 -16 -172, rhs: 1
+
+The system will verify each and every clause and check if it's a direct
+consequence of the CNF. It exists on the first wrong clause it finds.
+"""
     parser = optparse.OptionParser(usage=usage)
 
     parser.add_option("--verbose", "-v", action="store_true", default=False,
