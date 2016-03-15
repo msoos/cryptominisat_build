@@ -17,7 +17,8 @@ def check_one_conflict(orig_cnf, clause):
         newf += "%d 0\n" %(-1*lit)
 
     toexec = "lingeling -f"
-    print("Solving with other solver: %s" % toexec)
+    if options.verbose:
+        print("Solving with other solver: %s" % toexec)
     currTime = calendar.timegm(time.gmtime())
     p = subprocess.Popen(toexec.rsplit(),
                          stdout=subprocess.PIPE,
@@ -51,6 +52,47 @@ def get_clauses_to_verify(outfname):
 
     return clauses
 
+def get_xors_to_verify(outfname):
+    xors = []
+    with open(outfname, "r") as f:
+        for line in f:
+            line = line.strip()
+            if line[:2] != "x ":
+                continue
+
+            vs = line[2:].split("=")[0].split("+")
+            vs = map(str.strip, vs)
+            vs = map(int, vs)
+            rhs = line[2:].split("=")[1].strip() == "true"
+            if options.verbose:
+                print("vars: %s rhs: %s" % (vs, rhs))
+
+            xors.append([vs, rhs])
+    return xors
+
+def xor_to_clauses(vs, rhs):
+    clauses = []
+    for i in xrange(2**len(vs)):
+        if bin(i).count("1")%2 != rhs:
+            continue
+
+        clause = []
+        for v,pos in zip(vs, xrange(100000)):
+            k = v
+            if (i>>pos)&1 == 0:
+                k *= -1
+
+            clause.append(k)
+
+        clauses.append(clause)
+
+    if options.verbose:
+        print("XOR: %s rhs %s" % (vs, rhs))
+        for cl in clauses:
+            print(" --> %s" % cl)
+    return clauses
+
+
 if __name__ == "__main__":
     usage = """usage: %prog [options] CNF gauss_output
 Where gauss_output is the outptu of gauss with lines such as:
@@ -76,11 +118,25 @@ consequence of the CNF. It exists on the first wrong clause it finds.
     print("CNF: %s output file: %s" % (cnffname, outfname))
 
     clauses = get_clauses_to_verify(outfname)
+    xors = get_xors_to_verify(outfname)
+
+    xor_clauses = []
+    for x in xors:
+        xor_clauses.extend(xor_to_clauses(x[0], x[1]))
+
 
     origf = ""
     with open(cnffname, "r") as f:
         origf = f.read()
 
+    for clause in xor_clauses:
+        if options.verbose:
+            print("Checking (previously XOR) clause %s" % clause)
+        check_one_conflict(origf, clause)
+
+    print("XORs all verify")
+
     for clause in clauses:
-        print("Checking clause %s" % clause)
+        if options.verbose:
+            print("Checking clause %s" % clause)
         check_one_conflict(origf, clause)
