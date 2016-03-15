@@ -35,9 +35,9 @@ def check_one_conflict(orig_cnf, clause):
         print("OOOps, this is the issue: %s" % clause)
         exit(-1)
 
-def get_clauses_to_verify(outfname):
+def get_clauses_to_verify(fname):
     clauses = []
-    with open(outfname, "r") as f:
+    with open(fname, "r") as f:
         for line in f:
             line = line.strip()
             if "clause:" not in line:
@@ -51,9 +51,9 @@ def get_clauses_to_verify(outfname):
 
     return clauses
 
-def get_xors_to_verify(outfname):
+def get_xors_to_verify(fname):
     xors = []
-    with open(outfname, "r") as f:
+    with open(fname, "r") as f:
         for line in f:
             line = line.strip()
             if line[:2] != "x ":
