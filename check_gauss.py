@@ -18,12 +18,12 @@ def check_one_conflict(orig_cnf, clause):
     toexec = "lingeling -f"
     if options.verbose:
         print("Solving with other solver: %s" % toexec)
-    currTime = calendar.timegm(time.gmtime())
+    curr_time = calendar.timegm(time.gmtime())
     p = subprocess.Popen(toexec.rsplit(),
                          stdout=subprocess.PIPE,
                          stdin=subprocess.PIPE)
     console_out = p.communicate(input=newf)[0]
-    t = calendar.timegm(time.gmtime()) - currTime
+    t = calendar.timegm(time.gmtime()) - curr_time
     console_out = map(str.strip, console_out.split('\n'))
 
     unsat = False
