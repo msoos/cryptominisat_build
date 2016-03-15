@@ -72,7 +72,9 @@ def get_xors_to_verify(fname):
 def xor_to_clauses(vs, rhs):
     clauses = []
     for i in xrange(2**len(vs)):
-        if bin(i).count("1")%2 != rhs:
+        if bin(i).count("1")%2 != rhs and len(vs) %2 == 1:
+            continue
+        if bin(i).count("1")%2 == rhs and len(vs) %2 == 0:
             continue
 
         clause = []
