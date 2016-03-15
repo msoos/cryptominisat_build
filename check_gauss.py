@@ -117,26 +117,30 @@ consequence of the CNF. It exists on the first wrong clause it finds.
     outfname = args[1]
     print("CNF: %s output file: %s" % (cnffname, outfname))
 
-    clauses = get_clauses_to_verify(outfname)
-    xors = get_xors_to_verify(outfname)
-
-    xor_clauses = []
-    for x in xors:
-        xor_clauses.extend(xor_to_clauses(x[0], x[1]))
-
-
+    #Read in orignal file
     origf = ""
     with open(cnffname, "r") as f:
         origf = f.read()
 
+    #get data from 'outfname'
+    clauses = get_clauses_to_verify(outfname)
+    xors = get_xors_to_verify(outfname)
+
+    print("Calculating XORs' in clause version....")
+    xor_clauses = []
+    for x in xors:
+        xor_clauses.extend(xor_to_clauses(x[0], x[1]))
+
+    print("Checking XORs....")
     for clause in xor_clauses:
         if options.verbose:
             print("Checking (previously XOR) clause %s" % clause)
         check_one_conflict(origf, clause)
+    print("XORs all OK")
 
-    print("XORs all verify")
-
+    print("Checking propagations and conflicts...")
     for clause in clauses:
         if options.verbose:
             print("Checking clause %s" % clause)
         check_one_conflict(origf, clause)
+    print("All props and conflicts verify.")
