@@ -69,6 +69,7 @@ def get_xors_to_verify(fname):
             xors.append([vs, rhs])
     return xors
 
+
 def xor_to_clauses(vs, rhs):
     clauses = []
     for i in xrange(2**len(vs)):
@@ -78,7 +79,7 @@ def xor_to_clauses(vs, rhs):
             continue
 
         clause = []
-        for v,pos in zip(vs, xrange(100000)):
+        for v, pos in zip(vs, xrange(100000)):
             k = v
             if (i>>pos)&1 == 0:
                 k *= -1
