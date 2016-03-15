@@ -94,31 +94,7 @@ def xor_to_clauses(vs, rhs):
             print(" --> %s" % cl)
     return clauses
 
-
-if __name__ == "__main__":
-    usage = """usage: %prog [options] CNF gauss_output
-Where gauss_output is the outptu of gauss with lines such as:
-(0) prop clause: -43 84 27 143 -12 151 , rhs:1
-(0) confl clause: -133 102 146 -149 8 -16 -172, rhs: 1
-
-The system will verify each and every clause and check if it's a direct
-consequence of the CNF. It exists on the first wrong clause it finds.
-"""
-    parser = optparse.OptionParser(usage=usage)
-
-    parser.add_option("--verbose", "-v", action="store_true", default=False,
-                      dest="verbose", help="Print more output")
-
-    (options, args) = parser.parse_args()
-
-    if len(args) != 2:
-        print("ERROR: You must give CNF and output file")
-        exit(-1)
-
-    cnffname = args[0]
-    outfname = args[1]
-    print("CNF: %s output file: %s" % (cnffname, outfname))
-
+def check():
     #Read in orignal file
     origf = ""
     with open(cnffname, "r") as f:
@@ -146,3 +122,30 @@ consequence of the CNF. It exists on the first wrong clause it finds.
             print("Checking clause %s" % clause)
         check_one_conflict(origf, clause)
     print("All props and conflicts verify.")
+
+
+if __name__ == "__main__":
+    usage = """usage: %prog [options] CNF gauss_output
+Where gauss_output is the outptu of gauss with lines such as:
+(0) prop clause: -43 84 27 143 -12 151 , rhs:1
+(0) confl clause: -133 102 146 -149 8 -16 -172, rhs: 1
+
+The system will verify each and every clause and check if it's a direct
+consequence of the CNF. It exists on the first wrong clause it finds.
+"""
+    parser = optparse.OptionParser(usage=usage)
+
+    parser.add_option("--verbose", "-v", action="store_true", default=False,
+                      dest="verbose", help="Print more output")
+
+    (options, args) = parser.parse_args()
+
+    if len(args) != 2:
+        print("ERROR: You must give CNF and output file")
+        exit(-1)
+
+    cnffname = args[0]
+    outfname = args[1]
+    print("CNF: %s output file: %s" % (cnffname, outfname))
+
+    check()
