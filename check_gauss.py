@@ -62,7 +62,14 @@ def get_xors_to_verify(fname):
             vs = line[2:].split("=")[0].split("+")
             vs = map(str.strip, vs)
             vs = map(int, vs)
-            rhs = line[2:].split("=")[1].strip() == "true"
+            rhs = line[2:].split("=")[1].strip()
+            if rhs == "true":
+                rhs = True
+            elif rhs == "false":
+                rhs = False
+            else:
+                print "ERROR: RHS is neither 'true' nor 'false'"
+                exit(-1)
             if options.verbose:
                 print("vars: %s rhs: %s" % (vs, rhs))
 
