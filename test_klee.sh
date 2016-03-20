@@ -6,7 +6,7 @@ rm -rf cm* CM* lib* cryptomini* Testing* tests* pycryptosat include
 rm -rf tests
 
 CXX=/home/soos/development/smt/klee/scripts/klee-clang cmake -DNOM4RI=ON  -DNOVALGRIND=ON -DNOZLIB=ON  -DONLY_SIMPLE=ON  -DENABLE_PYTHON_INTERFACE=OFF -DUSE_PTHREADS=OFF ..
-make -j4 VERBOSE=1
+make -j6 VERBOSE=1
 
 lvm-link-3.4 cryptominisat4_simple /home/soos/development/smt/libcxx/build/lib/libc++.so.1.0 -o out
 klee --libc=uclibc --posix-runtime out
