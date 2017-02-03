@@ -19,12 +19,11 @@ c Solver::simplify( -2 )
 x -5 0
 c Solver::solve( )
 10 -3 0
-c Solver::new_var()
+c Solver::new_var( )
 5 -3 0
-c Solver::simplify()
+c Solver::simplify( )
 c Solver::new_vars( 30 )
-20 4 0
-" > input/a
+20 4 0" > input/example.cnf
 # rm -ir output
 if [ -d "output" ]; then
     mv output old_output
