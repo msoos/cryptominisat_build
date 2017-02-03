@@ -2,9 +2,9 @@
 
 set -e
 
-# rm -rf cm* CM* lib* cryptomini* Testing* tests* pycryptosat include tests cusp* scalmc*
-# CXX=afl-g++ cmake -DLIMITMEM=ON ..
-# make -j6
+rm -rf cm* CM* lib* cryptomini* Testing* tests* pycryptosat include tests cusp* scalmc*
+CXX=afl-g++ cmake -DLIMITMEM=ON ..
+make -j6
 
 rm -ir input
 mkdir -p input
