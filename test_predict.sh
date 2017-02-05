@@ -11,7 +11,7 @@ if [ "$ret" -ne 0 ]; then
 fi
 
 # running CNF
-./cryptominisat5 --verb 0 drat_test2.cnf.gz --zero-exit-status --clid drat_out --sql 2
+./cryptominisat5 --verb 0 drat_test2.cnf.gz --zero-exit-status --clid --sql 2 drat_out
 
 # getting drat
 ../../drat-trim/drat-trim2 drat_test2.cnf.gz drat_out -l lemmas
