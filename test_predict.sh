@@ -9,9 +9,19 @@ if [ "$ret" -ne 0 ]; then
     echo "You must compile SQL into cryptominisat"
     exit -1
 fi
+
+# running CNF
 ./cryptominisat5 --verb 0 drat_test2.cnf.gz --zero-exit-status --clid drat_out --sql 2
-../../drat-trim2/drat-trim2 drat_test2.cnf.gz drat_out -l lemmas
+
+# getting drat
+../../drat-trim/drat-trim2 drat_test2.cnf.gz drat_out -l lemmas
+
+# add lemma indices that were good
 ./add_lemma_ind.py drat_test2.cnf.gz.sqlite lemmas
+
+# run prediction on SQLite database
 ./predict.py drat_test2.cnf.gz.sqlite
-dot -Tpng drat_test2.tree,dot -o tree.png
+
+# generate DOT and display it
+dot -Tpng drat_test2.tree.dot -o tree.png
 okular tree.png
