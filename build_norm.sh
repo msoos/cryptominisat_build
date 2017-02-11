@@ -6,6 +6,7 @@ rm -rf cm* CM* lib* cryptomini* Testing* tests* pycryptosat include tests cusp* 
 cmake -DENABLE_PYTHON_INTERFACE=ON -DENABLE_TESTING=ON ..
 make -j6
 make test
-cd ../tests/simp-checks/
-./checks.py ../../build/cryptominisat5 testfiles/*
-cd ../../build/
+(
+    cd ../tests/simp-checks/
+    ./checks.py ../../build/cryptominisat5 testfiles/*
+)
