@@ -7,5 +7,5 @@ cmake -DCMAKE_BUILD_TYPE=Release -DENABLE_PYTHON_INTERFACE=ON -DENABLE_TESTING=O
 make -j6
 make test
 cd ../tests/simp-checks/
-./checks.py ../../build/cryptominisat5 testfiles/*
+./check_bve.py ../../build/cryptominisat5 testfiles/*
 cd ../../build/

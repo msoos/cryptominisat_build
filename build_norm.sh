@@ -8,5 +8,5 @@ make -j6
 make test
 (
     cd ../tests/simp-checks/
-    ./checks.py ../../build/cryptominisat5 testfiles/*
+    ./check_bve.py ../../build/cryptominisat5 testfiles/*
 )
