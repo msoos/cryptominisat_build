@@ -8,12 +8,13 @@ import copy
 import calendar
 import time
 
+
 def check_one_conflict(orig_cnf, clause):
 
     newf = copy.deepcopy(orig_cnf)
     newf += "\n"
     for lit in clause:
-        newf += "%d 0\n" %(-1*lit)
+        newf += "%d 0\n" % (-1*lit)
 
     toexec = "lingeling -f"
     if options.verbose:
@@ -35,6 +36,7 @@ def check_one_conflict(orig_cnf, clause):
         print("OOOps, this is the issue: %s" % clause)
         exit(-1)
 
+
 def get_clauses_to_verify(fname):
     clauses = []
     with open(fname, "r") as f:
@@ -50,6 +52,7 @@ def get_clauses_to_verify(fname):
                 print("lits: %s" % lits)
 
     return clauses
+
 
 def get_xors_to_verify(fname):
     xors = []
@@ -80,15 +83,15 @@ def get_xors_to_verify(fname):
 def xor_to_clauses(vs, rhs):
     clauses = []
     for i in xrange(2**len(vs)):
-        if bin(i).count("1")%2 != rhs and len(vs) %2 == 1:
+        if bin(i).count("1") % 2 != rhs and len(vs) % 2 == 1:
             continue
-        if bin(i).count("1")%2 == rhs and len(vs) %2 == 0:
+        if bin(i).count("1") % 2 == rhs and len(vs) % 2 == 0:
             continue
 
         clause = []
         for v, pos in zip(vs, xrange(100000)):
             k = v
-            if (i>>pos)&1 == 0:
+            if (i >> pos) & 1 == 0:
                 k *= -1
 
             clause.append(k)
@@ -101,13 +104,14 @@ def xor_to_clauses(vs, rhs):
             print(" --> %s" % cl)
     return clauses
 
+
 def check():
-    #Read in orignal file
+    # Read in orignal file
     origf = ""
     with open(cnffname, "r") as f:
         origf = f.read()
 
-    #get data from 'outfname'
+    # get data from 'outfname'
     clauses = get_clauses_to_verify(outfname)
     xors = get_xors_to_verify(outfname)
 
@@ -133,12 +137,12 @@ def check():
 
 if __name__ == "__main__":
     usage = """usage: %prog [options] CNF gauss_output
-Where gauss_output is the outptu of gauss with lines such as:
+Where gauss_output is the outptut of gauss with lines such as:
 (0) prop clause: -43 84 27 143 -12 151 , rhs:1
 (0) confl clause: -133 102 146 -149 8 -16 -172, rhs: 1
 
 The system will verify each and every clause and check if it's a direct
-consequence of the CNF. It exists on the first wrong clause it finds.
+consequence of the CNF. It exits on the first wrong clause it finds.
 """
     parser = optparse.OptionParser(usage=usage)
 
