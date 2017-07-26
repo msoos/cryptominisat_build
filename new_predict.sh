@@ -28,7 +28,7 @@ do
     ./cryptominisat5 --verb 0 --keepguess 0 --zero-exit-status --clid --sql 2 "${FNAME}" drat_out
 
     # getting drat
-    ../../drat-trim/drat-trim2 "${FNAME}" drat_out -l lemmas
+    ../../drat-trim/drat-trim "${FNAME}" drat_out -l lemmas
 
     # add lemma indices that were good
     mv "${FNAME}.sqlite" "${OUTDIR}/"
