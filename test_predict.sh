@@ -14,7 +14,7 @@ fi
 ./cryptominisat5 --verb 0 drat_test2.cnf.gz --maxtemp 1000000000 --keepguess 0 --zero-exit-status --clid --sql 2 drat_out
 
 # getting drat
-../../drat-trim/drat-trim2 drat_test2.cnf.gz drat_out -l lemmas
+../../drat-trim/drat-trim drat_test2.cnf.gz drat_out -l lemmas
 
 # add lemma indices that were good
 ./add_lemma_ind.py drat_test2.cnf.gz.sqlite lemmas
