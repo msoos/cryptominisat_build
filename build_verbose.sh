@@ -7,6 +7,3 @@ rm -rf tests
 cmake -DENABLE_TESTING=ON ..
 make -j6 VERBOSE=1
 ctest -V
-cd ../tests/simp-checks/
-./check_bve.py ../../build/cryptominisat5 testfiles/*
-cd ../../build/
