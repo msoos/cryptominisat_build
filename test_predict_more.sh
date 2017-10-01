@@ -2,20 +2,24 @@
 set -e
 set -x
 
+status=`./cryptominisat5 --hhelp | grep sql || ret=$?`
+if [ "$ret" -ne 0 ]; then
+    echo "You must compile SQL into cryptominisat"
+    exit -1
+fi
+
 OUTDIR="out_predict_new"
 rm -rf ${OUTDIR}
 mkdir -p ${OUTDIR}
+
 for i in `seq 1 6`;
 do
     FNAME="my_cnf_$i.cnf"
-    rm -if "${OUTDIR}/dratout"
-    rm -f "${OUTDIR}/lemmas"
-    rm -f "${FNAME}"
 
     # generate CNF
     if [ $((a%2)) -eq 0 ];
     then
-         ./tests/cnf-utils/sgen4 -unsat -n 62 -s 1 > ${OUTDIR}/${FNAME}
+         ./tests/cnf-utils/sgen4 -unsat -n 64 -s 1 > ${OUTDIR}/${FNAME}
     fi
 
     if [ $((a%2)) -eq 1 ];
@@ -30,7 +34,7 @@ do
         "${OUTDIR}/${FNAME}" "${OUTDIR}/drat_out" --sqlitedb "${OUTDIR}/${FNAME}.sqlite"
 
     # getting lemmas used from DRAT
-    ./tests/drat-trim/drat-trim "${FNAME}" "${OUTDIR}/drat_out" -l "${OUTDIR}/lemmas${i}"
+    ./tests/drat-trim/drat-trim "${OUTDIR}/${FNAME}" "${OUTDIR}/drat_out" -l "${OUTDIR}/lemmas${i}"
 
     # add lemma indices that were good
     ./add_lemma_ind.py "${OUTDIR}/${FNAME}.sqlite" "${OUTDIR}/lemmas${i}"
@@ -42,5 +46,5 @@ done
 ./predict.py ${OUTDIR}/*.sqlite
 
 # generate DOT and display it
-dot -Tpng drat_test2.tree.dot -o tree.png
-okular tree.png
+dot -Tpng ${OUTDIR}/final.dot -o ${OUTDIR}/tree.png
+okular ${OUTDIR}/tree.png
