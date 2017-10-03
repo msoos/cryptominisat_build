@@ -8,7 +8,7 @@ if [ "$ret" -ne 0 ]; then
     exit -1
 fi
 
-OUTDIR="out_predict_new"
+OUTDIR="test_predict_more"
 rm -rf ${OUTDIR}
 mkdir -p ${OUTDIR}
 
