@@ -2,8 +2,9 @@
 set -e
 set -x
 
-./predict_one.sh drat_test2.cnf.gz
+DIR=test_predict
+./predict_one.sh drat_test2.cnf.gz ${DIR}
 
-dot -Tpng predict/data.sqlite.tree.dot -o tree.png
+dot -Tpng ${DIR}/data.sqlite.tree.dot -o tree.png
 echo "Execute:"
 echo "okular tree.png"
