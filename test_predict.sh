@@ -7,4 +7,4 @@ DIR=test_predict
 
 dot -Tpng ${DIR}/data.sqlite.tree.dot -o tree.png
 echo "Execute:"
-echo "okular tree.png"
+echo "display tree.png"
