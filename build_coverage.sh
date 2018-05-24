@@ -3,6 +3,12 @@
 set -e
 
 rm -rf cm* CM* lib* cryptomini* Testing* tests* pycryptosat include tests cusp* scalmc*
-cmake -DENABLE_TESTING=ON -DSTATICCOMPILE=ON -DCOVERAGE=ON ..
-make -j6 VERBOSE=1
+cmake -DENABLE_TESTING:BOOL=ON \
+                   -DCOVERAGE:BOOL=ON \
+                   -DUSE_GAUSS=ON \
+                   -DSTATS:BOOL=ON \
+                   -DSLOW_DEBUG:BOOL=ON \
+                   -DSTATICCOMPILE:BOOL=ON \
+                   ..
+make -j6
 make test
