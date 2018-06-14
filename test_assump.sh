@@ -36,12 +36,6 @@ if [[ 1 -eq 1 ]]; then
 12
 13
 -14
-15
--16
-17
-18
--19
--20
 EOL
     ./cryptominisat5 out  --assump assump.ass  dr --verb 0
     ./tests/drat-trim/drat-trim out dr -A assump.ass -l x -B
