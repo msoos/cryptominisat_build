@@ -38,7 +38,7 @@ if [[ 1 -eq 1 ]]; then
 -14
 EOL
     ./cryptominisat5 out  --assump assump.ass  dr --verb 0
-    ./tests/drat-trim/drat-trim out dr -A assump.ass -l x -B
+    ./tests/drat-trim/drat-trim out dr -A assump.ass -l x -B -O 3
     cp out out_more
     grep -v "d" x | grep -v "^0$" | sed "s/ 0 .*/ 0/" >> out_more
     out=$(./cryptominisat5 out_more --verb 0)
