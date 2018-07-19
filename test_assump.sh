@@ -44,3 +44,8 @@ EOL
     out=$(./cryptominisat5 out_more --verb 0)
     echo "$out"
 fi
+
+
+# TODO: print decisions for final SAT
+# TODO: add them as assumptions (maybe unit clauses?)
+# TODO: add extra clause that bans this particular solution -a V -b V -c....
