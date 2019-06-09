@@ -18,7 +18,7 @@ def check_one_conflict(orig_cnf, clause):
 
     toexec = "lingeling -f"
     if options.verbose:
-        print("Solving with other solver: %s" % toexec)
+        print("conflict check -- solving with other solver: %s" % toexec)
     curr_time = calendar.timegm(time.gmtime())
     p = subprocess.Popen(toexec.rsplit(),
                          stdout=subprocess.PIPE,
