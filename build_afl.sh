@@ -21,4 +21,4 @@ c Solver::solve( 1 -3 )
 EOF
 
 export AFL_SKIP_CPUFREQ="1"
-afl-fuzz -M master -i afl/testcase_dir/ -o afl/findings_dir/ ./cryptominisat5 --debuglib 1
+afl-fuzz -M master -i afl/testcase_dir/ -o afl/findings_dir/ ./cryptominisat5 --presimp 1 --debuglib 1
