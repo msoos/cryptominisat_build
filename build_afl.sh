@@ -11,6 +11,7 @@ cat <<EOF > afl/testcase_dir/input.cnf
 p cnf 13 24
 4 5 0
 -2 1 0
+x 2 3 -4 0
 c stuff
 c Solver::new_var()
 c Solver::new_vars( 20 )
