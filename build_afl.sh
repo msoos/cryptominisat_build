@@ -13,6 +13,7 @@ p cnf 13 24
 -2 1 0
 x 2 3 -4 0
 c stuff
+c ind 2 3 4 0
 c Solver::new_var()
 c Solver::new_vars( 20 )
 c Solver::solve( 3 4 )
