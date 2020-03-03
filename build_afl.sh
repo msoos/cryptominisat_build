@@ -3,7 +3,7 @@
 set -e
 
 rm -rf cm* CM* lib* cryptomini* Testing* tests* pycryptosat include tests
-CC=afl-clang-fast CXX=afl-clang-fast++ cmake -DLIMITMEM=ON -DENABLE_PYTHON_INTERFACE=OFF -DENABLE_TESTING=OFF -DNOZLIB=ON ..
+CC=afl-gcc CXX=afl-g++ cmake -DLIMITMEM=ON -DENABLE_PYTHON_INTERFACE=OFF -DENABLE_TESTING=OFF -DNOZLIB=ON ..
 make -j6
 mkdir -p afl/testcase_dir/
 mkdir -p afl/findings_dir/
@@ -23,4 +23,4 @@ c Solver::solve( 1 -3 )
 EOF
 
 export AFL_SKIP_CPUFREQ="1"
-afl-fuzz -M master -i afl/testcase_dir/ -o afl/findings_dir/ ./cryptominisat5 --presimp 1 --debuglib 1
+# afl-fuzz -M master -i afl/testcase_dir/ -o afl/findings_dir/ ./cryptominisat5 --presimp 1 --debuglib 1
