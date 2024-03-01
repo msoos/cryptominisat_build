@@ -1,11 +1,11 @@
-#!/bin/bash                                                                                                                            
+#!/bin/bash
 
 set -e
 
 rm -rf cm* CM* lib* cryptomini* Testing* tests* pycryptosat include
 rm -rf tests
 
-CXX=/home/soos/development/smt/klee/scripts/klee-clang cmake -DNOZLIB=ON  -DONLY_SIMPLE=ON  -DENABLE_PYTHON_INTERFACE=OFF -DUSE_PTHREADS=OFF ..
+CXX=/home/soos/development/smt/klee/scripts/klee-clang cmake -DNOZLIB=ON  -DENABLE_PYTHON_INTERFACE=OFF -DUSE_PTHREADS=OFF ..
 make -j6 VERBOSE=1
 
 lvm-link-3.4 cryptominisat5_simple /home/soos/development/smt/libcxx/build/lib/libc++.so.1.0 -o out
