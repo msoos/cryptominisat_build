@@ -2,8 +2,7 @@
 
 set -e
 
-rm -rf cm* CM* lib* cryptomini* Testing* tests* pycryptosat include
-rm -rf tests
-cmake -DENABLE_TESTING=ON ..
-make -j6 VERBOSE=1
-ctest -V
+rm -rf cm* CM* lib* cryptomini* Testing* tests* pycryptosat include tests cusp* scalmc* utils Make*
+cmake -DNOBREAKID=ON -DNOBOSPHORUS=ON -DENABLE_TESTING=ON -DCMAKE_EXPORT_COMPILE_COMMANDS=ON ..
+make -j26 VERBOSE=1
+make test
